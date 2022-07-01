@@ -6,12 +6,12 @@ import { lookupArchive } from "@subsquid/archive-registry";
 import { Transfer } from "./model";
 import { BalancesTransferEvent } from "./types/events";
 
-const processor = new SubstrateProcessor("moonbeam-balance-transfers");
+const processor = new SubstrateProcessor("moonriver-balance-transfers");
 
 processor.setBatchSize(500);
 processor.setDataSource({
-  archive: lookupArchive("moonbeam")[0].url,
-  chain: "wss://moonbeam.api.onfinality.io/public-ws",
+  archive: lookupArchive("moonriver")[0].url,
+  chain: "wss://moonriver.api.onfinality.io/public-ws",
 });
 processor.setBlockRange({from: 0})
 
@@ -26,8 +26,8 @@ processor.addEventHandler("balances.Transfer", async (ctx: EventHandlerContext) 
   transferred.to = ctx.event.params[2].value as string;
 
   // // only save a transfer if the to or from is one of the WGLMR contracts
-  const WGLMR = ["0xAcc15dC74880C9944775448304B263D191c6077F", "0xe3DB50049C74De2F7d7269823af3178Cf22fd5E3", "0x5f6c5C2fB289dB2228d159C69621215e354218d7"]
-  if (WGLMR.includes(transferred.from) || WGLMR.includes(transferred.to)){
+  const WMOVR = ["0x98878B06940aE243284CA214f92Bb71a2b032B8A", "0xE3C7487Eb01C74b73B7184D198c7fBF46b34E5AF", "0xf50225a84382c74CbdeA10b0c176f71fc3DE0C4d"]
+  if (WMOVR.includes(transferred.from) || WMOVR.includes(transferred.to)){
     await ctx.store.save(transferred);
   }
 });
@@ -35,8 +35,8 @@ processor.addEventHandler("balances.Transfer", async (ctx: EventHandlerContext) 
 function getTransferEvent(ctx: EventHandlerContext) {
   const event = new BalancesTransferEvent(ctx);
 
-  if (event.isV900) {
-    const [from, to, value] = event.asV900;
+  if (event.isV49) {
+    const [from, to, value] = event.asV49;
     return {from, to, amount: value};
   } else {
     return event.asV1201

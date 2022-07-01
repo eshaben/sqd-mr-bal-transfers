@@ -1,7 +1,6 @@
 import assert from 'assert'
 import {EventContext, Result, deprecateLatest} from './support'
 import * as v1201 from './v1201'
-import * as v900 from './v900'
 
 export class BalancesTransferEvent {
   constructor(private ctx: EventContext) {
@@ -9,17 +8,17 @@ export class BalancesTransferEvent {
   }
 
   /**
-   * Transfer succeeded. \[from, to, value\]
+   *  Transfer succeeded. \[from, to, value\]
    */
-  get isV900(): boolean {
+  get isV49(): boolean {
     return this.ctx._chain.getEventHash('balances.Transfer') === 'dfcae516f053c47e7cb49e0718f01587efcb64cea4e3baf4c6973a29891f7841'
   }
 
   /**
-   * Transfer succeeded. \[from, to, value\]
+   *  Transfer succeeded. \[from, to, value\]
    */
-  get asV900(): [v900.H160, v900.H160, bigint] {
-    assert(this.isV900)
+  get asV49(): [Uint8Array, Uint8Array, bigint] {
+    assert(this.isV49)
     return this.ctx._chain.decodeEvent(this.ctx.event)
   }
 
