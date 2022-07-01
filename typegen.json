@@ -1,8 +1,9 @@
 {
   "outDir": "src/types",
+  "specVersions": "https://moonriver.archive.subsquid.io/graphql",
   "chainVersions": "moonbeamVersions.json",
   "typesBundle": "moonriver",
   "events": [
-    "balances.Transfer"
+    "Balances.Transfer"
   ]
 }
