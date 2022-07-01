@@ -1,62 +1,46 @@
-import * as ss58 from "@subsquid/ss58";
 import {
   EventHandlerContext,
-  Store,
   SubstrateProcessor,
 } from "@subsquid/substrate-processor";
 import { lookupArchive } from "@subsquid/archive-registry";
-import { Transfer, AssetStatus } from "./model";
-import { AssetsBurnedEvent, AssetsIssuedEvent, AssetsTransferredEvent } from "./types/events";
+import { Transfer } from "./model";
+import { BalancesTransferEvent } from "./types/events";
 
-const processor = new SubstrateProcessor("moonbeam-asset-transfers");
+const processor = new SubstrateProcessor("moonbeam-balance-transfers");
 
 processor.setBatchSize(500);
 processor.setDataSource({
   archive: lookupArchive("moonbeam")[0].url,
   chain: "wss://moonbeam.api.onfinality.io/public-ws",
 });
-processor.setBlockRange({from: 950000})
+processor.setBlockRange({from: 0})
 
-processor.addEventHandler("assets.Transferred", async (ctx: EventHandlerContext) => {
-  const event = new AssetsTransferredEvent(ctx).asV1201;
+processor.addEventHandler("balances.Transfer", async (ctx: EventHandlerContext) => {
+  const event = getTransferEvent(ctx);
 
+  
   const transferred = new Transfer();
   transferred.id = ctx.event.id;
-  transferred.assetId = event.assetId.toString();
   transferred.balance = event.amount;
   transferred.from = ctx.event.params[1].value as string;
   transferred.to = ctx.event.params[2].value as string;
-  transferred.status = AssetStatus.TRANSFERRED;
 
-  await ctx.store.save(transferred);
+  // // only save a transfer if the to or from is one of the WGLMR contracts
+  const WGLMR = ["0xAcc15dC74880C9944775448304B263D191c6077F", "0xe3DB50049C74De2F7d7269823af3178Cf22fd5E3", "0x5f6c5C2fB289dB2228d159C69621215e354218d7"]
+  if (WGLMR.includes(transferred.from) || WGLMR.includes(transferred.to)){
+    await ctx.store.save(transferred);
+  }
 });
 
-processor.addEventHandler("assets.Issued", async (ctx: EventHandlerContext) => {
-  const event = new AssetsIssuedEvent(ctx).asV1201;
+function getTransferEvent(ctx: EventHandlerContext) {
+  const event = new BalancesTransferEvent(ctx);
 
-  const transferred = new Transfer();
-  transferred.id = ctx.event.id;
-  transferred.assetId = event.assetId.toString();
-  transferred.to = ctx.event.params[1].value as string;
-  transferred.from = "";
-  transferred.balance = event.totalSupply;
-  transferred.status = AssetStatus.ISSUED;
-
-  await ctx.store.save(transferred);
-});
-
-processor.addEventHandler("assets.Burned", async (ctx: EventHandlerContext) => {
-  const event = new AssetsBurnedEvent(ctx).asV1201;
-
-  const transferred = new Transfer();
-  transferred.id = ctx.event.id;
-  transferred.assetId = event.assetId.toString();
-  transferred.balance =  event.balance;
-  transferred.from = ctx.event.params[1].value as string;
-  transferred.to = "";
-  transferred.status = AssetStatus.BURNED;
-
-  await ctx.store.save(transferred);
-});
+  if (event.isV900) {
+    const [from, to, value] = event.asV900;
+    return {from, to, amount: value};
+  } else {
+    return event.asV1201
+  }
+}
 
 processor.run();

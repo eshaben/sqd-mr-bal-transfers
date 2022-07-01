@@ -1,6 +1,5 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_} from "typeorm"
 import * as marshal from "./marshal"
-import {AssetStatus} from "./_assetStatus"
 
 @Entity_()
 export class Transfer {
@@ -11,9 +10,6 @@ export class Transfer {
   @PrimaryColumn_()
   id!: string
 
-  @Column_("text", {nullable: false})
-  assetId!: string
-
   @Column_("text", {nullable: true})
   to!: string | undefined | null
 
@@ -22,7 +18,4 @@ export class Transfer {
 
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
   balance!: bigint
-
-  @Column_("varchar", {length: 11, nullable: false})
-  status!: AssetStatus
 }
