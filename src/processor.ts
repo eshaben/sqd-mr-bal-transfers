@@ -24,7 +24,6 @@ const processor = new SubstrateBatchProcessor()
 type Item = BatchProcessorItem<typeof processor>
 type Ctx = BatchContext<Store, Item>
 
-
 processor.run(new TypeormDatabase(), async ctx => {
     let transfers = getTransfers(ctx)
 
@@ -35,14 +34,13 @@ processor.run(new TypeormDatabase(), async ctx => {
       transferred.from = t.from
       transferred.to = t.to;
 
-      // // only save a transfer if the to or from is one of the WGLMR contracts
-      const WMOVR = ["0x98878B06940aE243284CA214f92Bb71a2b032B8A", "0xE3C7487Eb01C74b73B7184D198c7fBF46b34E5AF", "0xf50225a84382c74CbdeA10b0c176f71fc3DE0C4d"]
+      // // only save a transfer if the to or from is one of the WMOVR contracts
+      const WMOVR = ["0x98878b06940ae243284ca214f92bb71a2b032b8a", "0xe3c7487eb01c74b73b7184d198c7fbf46b34e5af", "0xf50225a84382c74cbdea10b0c176f71fc3de0c4d"]
       if (WMOVR.includes(transferred.from) || WMOVR.includes(transferred.to)){
         await ctx.store.save(transferred);
       }
     }
 })
-
 
 interface TransferEvent {
     id: string
@@ -50,7 +48,6 @@ interface TransferEvent {
     to: string
     balance: bigint
 }
-
 
 function getTransfers(ctx: Ctx): TransferEvent[] {
     let transfers: TransferEvent[] = []
