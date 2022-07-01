@@ -30,7 +30,8 @@ ADD schema.graphql .
 ENV PROCESSOR_PROMETHEUS_PORT 3000
 EXPOSE 3000
 EXPOSE 4000
-
+ENV DB_NAME squid
+ENV DB_PASS squid
 
 FROM squid AS processor
 CMD ["npm", "run", "processor:start"]
